@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroOS Pro v3.5 - Clean Focus</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.3);
+            --glass-border: rgba(255, 255, 255, 0.7);
+            --aero-blue: #0078d7;
+            --aero-green: #32d322;
+            --window-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #005aab 0%, #00aaff 30%, #ffffff 70%, #44cc44 100%);
+            background-attachment: fixed;
+            height: 100vh;
+            overflow: hidden;
+            color: #fff;
+            user-select: none;
+        }
+
+        /* Fundo Aurora Animado */
+        .aurora {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            filter: blur(80px);
+            opacity: 0.5;
+        }
+        .aurora-element {
+            position: absolute;
+            border-radius: 50%;
+            animation: move 25s infinite alternate ease-in-out;
+        }
+
+        @keyframes move {
+            from { transform: translate(-15%, -15%) rotate(0deg) scale(1); }
+            to { transform: translate(25%, 25%) rotate(90deg) scale(1.2); }
+        }
+
+        /* Janela Aero */
+        .aero-window {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.22);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1.5px solid var(--glass-border);
+            border-top: 1px solid rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            box-shadow: var(--window-shadow), inset 0 0 15px rgba(255,255,255,0.4);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-width: 250px;
+            z-index: 10;
+        }
+
+        .title-bar {
+            background: linear-gradient(to bottom, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 100%);
+            padding: 10px 14px;
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .window-controls { display: flex; gap: 6px; }
+        .ctrl-btn {
+            width: 26px; height: 20px; border-radius: 3px;
+            border: 1px solid rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; cursor: pointer; color: #111;
+            transition: background 0.2s;
+        }
+        .ctrl-btn.close:hover { background: #e81123; color: white; }
+        .ctrl-btn:hover:not(.close) { background: rgba(255,255,255,0.5); }
+
+        .window-content {
+            padding: 15px;
+            color: #1a1a1a;
+            background: rgba(255, 255, 255, 0.9);
+            flex-grow: 1;
+        }
+
+        /* Botão Glossy */
+        .glossy-btn {
+            background: linear-gradient(to bottom, #a1ffce 0%, #32d322 48%, #2ea02e 52%, #33bb33 100%);
+            border: 1px solid #fff;
+            border-radius: 20px;
+            padding: 8px 18px;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15), inset 0 1px 1px rgba(255,255,255,0.8);
+            text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.1s, filter 0.2s;
+        }
+        .glossy-btn:hover { filter: brightness(1.1); }
+        .glossy-btn:active { transform: scale(0.95); }
+        .glossy-btn.blue { background: linear-gradient(to bottom, #87ceeb 0%, #0078d7 48%, #005aab 52%, #0078d7 100%); }
+
+        /* Stats Panel */
+        .stats-panel {
+            background: linear-gradient(135deg, rgba(0,120,215,0.05) 0%, rgba(50,211,34,0.05) 100%);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            font-size: 12px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Taskbar */
+        .taskbar {
+            position: fixed;
+            bottom: 0; left: 0; width: 100%; height: 52px;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.4));
+            backdrop-filter: blur(25px);
+            border-top: 1px solid rgba(255,255,255,0.25);
+            display: flex; align-items: center; padding: 0 15px; z-index: 9999;
+        }
+
+        .taskbar-item {
+            height: 40px; padding: 0 16px; margin: 0 4px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            display: flex; align-items: center; gap: 8px;
+            cursor: pointer; transition: all 0.2s;
+            font-size: 13px; color: white;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .taskbar-item:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+
+        .bubble {
+            position: absolute;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.6), rgba(255,255,255,0));
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Overlay para evitar que o Iframe bloqueie o drag */
+        #drag-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 9998;
+            display: none;
+            background: transparent;
+        }
+
+        /* Task List Enhancements */
+        .task-input {
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            width: 100%;
+            margin-bottom: 10px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .task-input:focus { border-color: var(--aero-blue); box-shadow: 0 0 5px rgba(0,120,215,0.3); }
+
+        .task-list {
+            max-height: 180px;
+            overflow-y: auto;
+            margin-top: 10px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .task-item {
+            display: flex; flex-direction: column; gap: 4px;
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-radius: 6px;
+        }
+        .task-item:hover { background: rgba(0,120,215,0.05); }
+        .task-item.active { 
+            background: linear-gradient(to right, rgba(50,211,34,0.1), rgba(0,120,215,0.1)); 
+            border-left: 4px solid var(--aero-green);
+        }
+        
+        .task-main { display: flex; align-items: center; gap: 10px; }
+        .task-stats { display: flex; gap: 12px; font-size: 10px; color: #718096; margin-left: 26px; font-weight: 600; }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            items-center;
+            cursor: pointer;
+            padding: 4px 0;
+        }
+        .section-header:hover { opacity: 0.8; }
+
+        .chevron {
+            transition: transform 0.3s;
+        }
+        .chevron.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 8px;
+            background: #000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="drag-overlay"></div>
+
+    <!-- Fundo Aurora -->
+    <div class="aurora">
+        <div class="aurora-element" style="width: 800px; height: 600px; background: #0078d7; top: -10%; left: -10%;"></div>
+        <div class="aurora-element" style="width: 600px; height: 600px; background: #32d322; bottom: -10%; right: -10%; animation-delay: -5s;"></div>
+    </div>
+    <div id="bubbles-container"></div>
+
+    <!-- JANELA: POMODORO -->
+    <div class="aero-window" id="win-pomodoro" style="top: 40px; left: 40px; width: 360px;">
+        <div class="title-bar" onmousedown="initWindowAction(event, 'win-pomodoro')">
+            <span class="text-xs font-bold text-gray-800 drop-shadow-sm">Aero Pomodoro Focus</span>
+            <div class="window-controls">
+                <div class="ctrl-btn" onmousedown="event.stopPropagation()" onclick="minimizeWin('win-pomodoro')">_</div>
+                <div class="ctrl-btn close" onmousedown="event.stopPropagation()" onclick="closeWin('win-pomodoro')">X</div>
+            </div>
+        </div>
+        <div class="window-content text-center">
+            <div class="text-5xl font-light text-blue-600 mb-3 tracking-tight" id="pomodoro-time">25:00</div>
+            
+            <p id="active-task-name" class="text-xs font-bold text-green-600 mb-4 opacity-80 uppercase tracking-widest">A aguardar seleção...</p>
+
+            <div class="flex justify-center gap-3 mb-5">
+                <button class="glossy-btn text-xs" id="btn-pomodoro" onclick="togglePomodoro()">Iniciar</button>
+                <button class="glossy-btn blue text-xs" onclick="resetPomodoro()">Reset</button>
+            </div>
+            
+            <!-- Secção de Métricas (Colapsável) -->
+            <div class="border-t pt-2 mt-2">
+                <div class="section-header" onclick="toggleSection('stats-body', 'chevron-stats')">
+                    <span class="font-bold uppercase text-[10px] text-gray-500 tracking-wider">Métricas Globais</span>
+                    <svg id="chevron-stats" class="chevron w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div id="stats-body" class="stats-panel text-left">
+                    <div class="flex justify-between text-gray-700"><span>Sessões Totais:</span> <b id="stat-sessions" class="text-blue-600">0</b></div>
+                    <div class="flex justify-between text-gray-700"><span>Tempo Total:</span> <b id="stat-time" class="text-green-600">0m</b></div>
+                </div>
+            </div>
+
+            <!-- Secção de Tarefas (Colapsável) -->
+            <div class="text-left border-t mt-3 pt-3">
+                <div class="section-header mb-2" onclick="toggleSection('tasks-body', 'chevron-tasks')">
+                    <span class="text-[10px] uppercase font-bold text-gray-400">Tarefas</span>
+                    <svg id="chevron-tasks" class="chevron w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div id="tasks-body">
+                    <input type="text" id="task-input" class="task-input text-xs" placeholder="Adicionar nova tarefa...">
+                    <div id="task-list" class="task-list">
+                        <!-- Tarefas dinâmicas -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JANELA: WINDOWS MEDIA PLAYER -->
+    <div class="aero-window" id="win-media" style="top: 80px; left: 420px; width: 480px;">
+        <div class="title-bar" onmousedown="initWindowAction(event, 'win-media')">
+            <span class="text-xs font-bold text-gray-800">Windows Media Player - Playlist Aero</span>
+            <div class="window-controls">
+                <div class="ctrl-btn" onmousedown="event.stopPropagation()" onclick="minimizeWin('win-media')">_</div>
+                <div class="ctrl-btn close" onmousedown="event.stopPropagation()" onclick="closeWin('win-media')">X</div>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="video-container">
+                <iframe id="yt-player" src="https://www.youtube.com/embed/videoseries?list=PLNoJ-jBBofgR_EJkFMaXmKCLm9TtdAYTw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            </div>
+            <div class="mt-4 flex items-center justify-between px-2">
+                <div>
+                    <h4 class="text-sm font-bold text-gray-800">Frutiger Aero Music</h4>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-tighter">Liquid & Nature Vibes</p>
+                </div>
+                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
+                    <svg viewBox="0 0 24 24" class="w-4 h-4 fill-white"><path d="M12,3V13.55C11.41,13.21 10.73,13 10,13C7.79,13 6,14.79 6,17C6,19.21 7.79,21 10,21C12.21,21 14,19.21 14,17V7H18V3H12Z" /></svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JANELA: NOTAS -->
+    <div class="aero-window" id="win-notes" style="top: 450px; left: 120px; width: 320px; height: 180px;">
+        <div class="title-bar" onmousedown="initWindowAction(event, 'win-notes')">
+            <span class="text-xs font-bold text-gray-800">Notas Rápidas</span>
+            <div class="window-controls">
+                <div class="ctrl-btn" onmousedown="event.stopPropagation()" onclick="minimizeWin('win-notes')">_</div>
+                <div class="ctrl-btn close" onmousedown="event.stopPropagation()" onclick="closeWin('win-notes')">X</div>
+            </div>
+        </div>
+        <div class="window-content p-0">
+            <textarea class="w-full h-full p-4 bg-white border-none outline-none text-gray-800 text-sm resize-none" placeholder="Escreva as suas notas aqui..."></textarea>
+        </div>
+    </div>
+
+    <!-- BARRA DE TAREFAS -->
+    <footer class="taskbar">
+        <div class="w-10 h-10 bg-blue-600 rounded-full border-2 border-white/60 shadow-lg flex items-center justify-center cursor-pointer hover:scale-110 transition active:scale-95">
+             <svg viewBox="0 0 24 24" class="w-6 h-6 fill-white drop-shadow"><path d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z" /></svg>
+        </div>
+        <div class="h-8 w-[1px] bg-white/20 mx-4"></div>
+        <div class="flex gap-2" id="taskbar-apps">
+            <div class="taskbar-item" onclick="showWin('win-pomodoro')">⏱️ Foco</div>
+            <div class="taskbar-item" onclick="showWin('win-media')">🎵 Media</div>
+            <div class="taskbar-item" onclick="showWin('win-notes')">📝 Notas</div>
+        </div>
+        <div class="ml-auto flex items-center gap-4 text-xs font-bold mr-4 text-white drop-shadow-md">
+            <span id="date" class="hidden md:block opacity-80 font-normal">01 Jan</span>
+            <span id="clock" class="text-lg">12:00</span>
+        </div>
+    </footer>
+
+    <script>
+        // --- DATA STATE ---
+        let tasks = [];
+        let activeTaskId = null;
+
+        // --- GESTÃO DE JANELAS (DRAG & FOCUS) ---
+        let highestZ = 1000;
+        let draggedElement = null;
+        let offset = { x: 0, y: 0 };
+        const dragOverlay = document.getElementById('drag-overlay');
+
+        function initWindowAction(e, id) {
+            focusWindow(id);
+            dragStart(e, id);
+        }
+
+        function focusWindow(id) {
+            highestZ++;
+            const el = document.getElementById(id);
+            el.style.zIndex = highestZ;
+            el.style.opacity = "1";
+        }
+
+        function dragStart(e, id) {
+            draggedElement = document.getElementById(id);
+            const rect = draggedElement.getBoundingClientRect();
+            offset.x = e.clientX - rect.left;
+            offset.y = e.clientY - rect.top;
+            dragOverlay.style.display = 'block';
+
+            document.addEventListener('mousemove', dragMove);
+            document.addEventListener('mouseup', dragEnd);
+        }
+
+        function dragMove(e) {
+            if (!draggedElement) return;
+            let x = e.clientX - offset.x;
+            let y = e.clientY - offset.y;
+            const maxX = window.innerWidth - draggedElement.offsetWidth;
+            const maxY = window.innerHeight - 52;
+            x = Math.max(0, Math.min(x, maxX));
+            y = Math.max(0, Math.min(y, maxY));
+            draggedElement.style.left = x + 'px';
+            draggedElement.style.top = y + 'px';
+        }
+
+        function dragEnd() {
+            draggedElement = null;
+            dragOverlay.style.display = 'none';
+            document.removeEventListener('mousemove', dragMove);
+            document.removeEventListener('mouseup', dragEnd);
+        }
+
+        function closeWin(id) { document.getElementById(id).style.display = 'none'; }
+        function showWin(id) { 
+            const el = document.getElementById(id);
+            el.style.display = 'flex'; 
+            focusWindow(id);
+        }
+        function minimizeWin(id) { document.getElementById(id).style.display = 'none'; }
+
+        // --- UI TOGGLES ---
+        function toggleSection(contentId, chevronId) {
+            const content = document.getElementById(contentId);
+            const chevron = document.getElementById(chevronId);
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                chevron.classList.remove('collapsed');
+            } else {
+                content.classList.add('hidden');
+                chevron.classList.add('collapsed');
+            }
+        }
+
+        // --- POMODORO LOGIC & STATS ---
+        let timer = null;
+        let timeLeft = 25 * 60;
+        let isRunning = false;
+        let sessionsCompletedGlobal = 0;
+        let totalMinutesFocusGlobal = 0;
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            document.getElementById('pomodoro-time').textContent = 
+                `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function togglePomodoro() {
+            const btn = document.getElementById('btn-pomodoro');
+            if (isRunning) {
+                clearInterval(timer);
+                btn.textContent = "Retomar";
+            } else {
+                timer = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    
+                    if (timeLeft % 60 === 0 && timeLeft !== (25*60)) {
+                        totalMinutesFocusGlobal++;
+                        if(activeTaskId !== null) {
+                            const task = tasks.find(t => t.id === activeTaskId);
+                            if(task) task.timeSpent++;
+                        }
+                        updateUI();
+                    }
+
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        sessionsCompletedGlobal++;
+                        if(activeTaskId !== null) {
+                            const task = tasks.find(t => t.id === activeTaskId);
+                            if(task) task.sessions++;
+                        }
+                        updateUI();
+                        alert("Sessão finalizada!");
+                        resetPomodoro();
+                    }
+                }, 1000);
+                btn.textContent = "Pausar";
+            }
+            isRunning = !isRunning;
+        }
+
+        function resetPomodoro() {
+            clearInterval(timer);
+            timeLeft = 25 * 60;
+            isRunning = false;
+            updateTimerDisplay();
+            document.getElementById('btn-pomodoro').textContent = "Iniciar";
+        }
+
+        // --- TASK MANAGEMENT ---
+        const taskInput = document.getElementById('task-input');
+        const taskListEl = document.getElementById('task-list');
+
+        taskInput.onkeypress = (e) => {
+            if (e.key === 'Enter' && taskInput.value.trim() !== "") {
+                const newTask = {
+                    id: Date.now(),
+                    name: taskInput.value,
+                    timeSpent: 0,
+                    sessions: 0,
+                    completed: false
+                };
+                tasks.push(newTask);
+                taskInput.value = "";
+                renderTasks();
+            }
+        };
+
+        function selectTask(id) {
+            activeTaskId = id;
+            const task = tasks.find(t => t.id === id);
+            document.getElementById('active-task-name').textContent = `Foco em: ${task.name}`;
+            renderTasks();
+        }
+
+        function renderTasks() {
+            taskListEl.innerHTML = "";
+            tasks.forEach(task => {
+                const item = document.createElement('div');
+                item.className = `task-item ${activeTaskId === task.id ? 'active' : ''}`;
+                item.onclick = () => selectTask(task.id);
+                
+                item.innerHTML = `
+                    <div class="task-main">
+                        <input type="checkbox" class="w-4 h-4 accent-green-500" ${task.completed ? 'checked' : ''} 
+                               onclick="event.stopPropagation(); toggleTaskComplete(${task.id})"> 
+                        <span class="text-gray-700 font-medium ${task.completed ? 'line-through opacity-50' : ''}">${task.name}</span>
+                    </div>
+                    <div class="task-stats">
+                        <span>⏳ ${task.timeSpent}m</span>
+                        <span>🎯 ${task.sessions} sessões</span>
+                    </div>
+                `;
+                taskListEl.prepend(item);
+            });
+        }
+
+        function toggleTaskComplete(id) {
+            const task = tasks.find(t => t.id === id);
+            if(task) task.completed = !task.completed;
+            renderTasks();
+        }
+
+        function updateUI() {
+            document.getElementById('stat-sessions').textContent = sessionsCompletedGlobal;
+            document.getElementById('stat-time').textContent = totalMinutesFocusGlobal + "m";
+            renderTasks();
+        }
+
+        // --- SISTEMA DE BOLHAS ---
+        function initBubbles() {
+            const container = document.getElementById('bubbles-container');
+            for (let i = 0; i < 20; i++) {
+                const b = document.createElement('div');
+                b.className = 'bubble';
+                const size = Math.random() * 55 + 20;
+                b.style.width = size + 'px';
+                b.style.height = size + 'px';
+                b.style.left = Math.random() * 100 + 'vw';
+                b.style.top = Math.random() * 100 + 'vh';
+                container.appendChild(b);
+                animateBubble(b);
+            }
+        }
+
+        function animateBubble(el) {
+            let x = parseFloat(el.style.left);
+            let y = parseFloat(el.style.top);
+            let vx = (Math.random() - 0.5) * 0.12;
+            let vy = (Math.random() - 0.5) * 0.12;
+
+            function step() {
+                x += vx; y += vy;
+                if (x < 0 || x > 100) vx *= -1;
+                if (y < 0 || y > 100) vy *= -1;
+                el.style.left = x + 'vw';
+                el.style.top = y + 'vh';
+                requestAnimationFrame(step);
+            }
+            step();
+        }
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString('pt-PT', {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('date').textContent = now.toLocaleDateString('pt-PT', {day: '2-digit', month: 'short'});
+        }
+
+        window.onload = () => {
+            initBubbles();
+            updateTimerDisplay();
+            setInterval(updateClock, 1000);
+            updateClock();
+            focusWindow('win-pomodoro');
+            
+            // Iniciar com secções abertas
+            renderTasks();
+        };
+    </script>
+</body>
+</html>
