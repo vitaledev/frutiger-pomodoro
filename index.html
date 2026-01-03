@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AeroOS Pro v7.4 - Calendar & Time Emoji</title>
+    <title>AeroOS Pro v9.2 - Fixes</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -12,7 +12,7 @@
             --glass-border: rgba(255, 255, 255, 0.7);
             --aero-blue: #0078d7;
             --aero-green: #32d322;
-            --window-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+            --window-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
         }
 
         body {
@@ -27,33 +27,52 @@
             user-select: none;
         }
 
-        /* Fundo Aurora Animado */
+        /* Fundo Aurora */
         .aurora {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1;
-            filter: blur(80px);
-            opacity: 0.5;
+            z-index: -2; /* Fundo absoluto */
+            filter: blur(40px); 
+            opacity: 0.3; 
             pointer-events: none;
-            will-change: transform;
+            will-change: transform; 
+            transform: translateZ(0); 
         }
         .aurora-element {
             position: absolute;
             border-radius: 50%;
-            animation: move 25s infinite alternate ease-in-out;
+            animation: move 40s infinite alternate linear; 
+        }
+
+        /* Container de Bolhas (Corrigido para aparecer sempre) */
+        #bubbles-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; /* À frente da aurora, atrás das janelas */
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0));
+            pointer-events: none;
+            will-change: transform; 
         }
 
         @keyframes move {
-            from { transform: translate(-15%, -15%) rotate(0deg) scale(1); }
-            to { transform: translate(25%, 25%) rotate(90deg) scale(1.2); }
+            from { transform: translate(-5%, -5%) rotate(0deg); }
+            to { transform: translate(10%, 10%) rotate(20deg); }
         }
 
-        /* Janela Aero Base */
+        /* Janela Aero */
         .aero-window {
             position: absolute;
-            background: rgba(255, 255, 255, 0.35);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            background: rgba(255, 255, 255, 0.55); 
+            backdrop-filter: blur(8px) saturate(140%); 
+            -webkit-backdrop-filter: blur(8px) saturate(140%);
             border: 1.5px solid var(--glass-border);
             border-top: 1px solid rgba(255, 255, 255, 0.9);
             border-radius: 12px;
@@ -63,32 +82,30 @@
             flex-direction: column;
             min-width: 280px;
             z-index: 10;
-            transition: opacity 0.2s, transform 0.1s;
+            will-change: transform, opacity;
         }
 
-        /* Correção para Iframes durante o drag */
-        .aero-window.dragging iframe {
-            pointer-events: none;
-        }
+        .aero-window.dragging iframe { pointer-events: none; }
 
-        /* Estilo simplificado ao arrastar para performance */
         .aero-window.dragging {
             opacity: 0.9;
             cursor: move;
             transition: none;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5); /* Sombra maior ao arrastar */
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
         }
 
         .title-bar {
-            background: linear-gradient(to bottom, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.3) 100%);
+            background: linear-gradient(to bottom, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 100%);
             padding: 10px 14px;
-            cursor: move; /* Garante cursor de movimento */
+            cursor: move;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid rgba(255,255,255,0.3);
             flex-shrink: 0;
-            user-select: none;
         }
 
         .window-controls { display: flex; gap: 6px; }
@@ -98,7 +115,7 @@
             background: rgba(255,255,255,0.2);
             display: flex; align-items: center; justify-content: center;
             font-size: 11px; cursor: pointer; color: #111;
-            transition: background 0.2s;
+            transition: background 0.1s;
         }
         .ctrl-btn.close:hover { background: #e81123; color: white; }
         .ctrl-btn:hover:not(.close) { background: rgba(255,255,255,0.5); }
@@ -106,12 +123,12 @@
         .window-content {
             padding: 15px;
             color: #1a1a1a;
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.6); 
             flex-grow: 1;
             overflow-y: auto;
         }
 
-        /* Botão Glossy Style */
+        /* Botões */
         .glossy-btn {
             background: linear-gradient(to bottom, #a1ffce 0%, #32d322 48%, #2ea02e 52%, #33bb33 100%);
             border: 1px solid #fff;
@@ -119,35 +136,33 @@
             padding: 6px 16px;
             color: white;
             font-weight: 600;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.15), inset 0 1px 1px rgba(255,255,255,0.8);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
             text-shadow: 0 1px 1px rgba(0,0,0,0.3);
             cursor: pointer;
-            transition: transform 0.1s, filter 0.2s;
+            transition: filter 0.1s;
             font-size: 13px;
         }
         .glossy-btn:hover { filter: brightness(1.1); }
-        .glossy-btn:active { transform: scale(0.95); }
+        .glossy-btn:active { transform: translateY(1px); }
         .glossy-btn.blue { background: linear-gradient(to bottom, #87ceeb 0%, #0078d7 48%, #005aab 52%, #0078d7 100%); }
         .glossy-btn.orange { background: linear-gradient(to bottom, #ffdca1 0%, #ff9900 48%, #e08600 52%, #ff9900 100%); }
         .glossy-btn.gray { background: linear-gradient(to bottom, #e2e8f0 0%, #a0aec0 48%, #718096 52%, #a0aec0 100%); color: #fff; }
 
-        /* Inputs Aero */
         .aero-input {
             border: 1px solid #cbd5e0;
             border-radius: 6px;
             padding: 6px 10px;
             width: 100%;
             outline: none;
-            background: linear-gradient(to bottom, #f7fafc, #fff);
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            background: #fff;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
             font-size: 13px;
         }
-        .aero-input:focus { border-color: var(--aero-blue); box-shadow: 0 0 0 2px rgba(0,120,215,0.2); }
+        .aero-input:focus { border-color: var(--aero-blue); }
 
-        /* Stats & Collapse */
         .stats-panel {
-            background: linear-gradient(135deg, rgba(0,120,215,0.05) 0%, rgba(50,211,34,0.05) 100%);
-            border: 1px solid rgba(0,0,0,0.1);
+            background: rgba(255,255,255,0.5);
+            border: 1px solid rgba(0,0,0,0.05);
             border-radius: 8px;
             padding: 10px;
             margin-top: 8px;
@@ -155,117 +170,68 @@
         }
 
         .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            padding: 6px 0;
-            user-select: none;
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; padding: 6px 0; user-select: none;
         }
         .section-header:hover { opacity: 0.8; }
-        .chevron { transition: transform 0.3s; }
+        .chevron { transition: transform 0.2s; }
         .chevron.collapsed { transform: rotate(-90deg); }
 
         /* Taskbar */
         .taskbar {
-            position: fixed;
-            bottom: 0; left: 0; width: 100%; height: 52px;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.5));
-            backdrop-filter: blur(25px);
-            border-top: 1px solid rgba(255,255,255,0.25);
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 52px;
+            background: rgba(20, 20, 30, 0.75); 
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255,255,255,0.2);
             display: flex; align-items: center; padding: 0 10px; z-index: 9999;
             overflow-x: auto;
         }
 
         .taskbar-item {
             height: 38px; padding: 0 14px; margin: 0 4px;
-            background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
             border-radius: 6px;
             display: flex; align-items: center; gap: 8px;
-            cursor: pointer; transition: all 0.2s;
+            cursor: pointer; transition: background 0.2s;
             font-size: 13px; color: white;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
             white-space: nowrap;
         }
-        .taskbar-item:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
-        .taskbar-item:active { transform: translateY(0); }
+        .taskbar-item:hover { background: rgba(255,255,255,0.25); }
 
-        /* Habit Tracker Specifics */
         .habit-grid { display: grid; gap: 8px; }
         .habit-card {
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: all 0.2s;
+            background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
-        .habit-card.done {
-            border-left: 4px solid var(--aero-green);
-            background: linear-gradient(to right, #f0fff4, #fff);
-        }
-        .habit-stats-mini {
-            font-size: 9px;
-            color: #718096;
-            margin-top: 2px;
-        }
-        .habit-streak {
-            font-size: 10px;
-            font-weight: bold;
-            color: #718096;
-            background: #edf2f7;
-            padding: 2px 6px;
-            border-radius: 10px;
-        }
+        .habit-card.done { border-left: 4px solid var(--aero-green); background: #f0fff4; }
+        .habit-stats-mini { font-size: 9px; color: #718096; margin-top: 2px; }
+        .habit-streak { font-size: 10px; font-weight: bold; color: #718096; background: #edf2f7; padding: 2px 6px; border-radius: 10px; }
 
-        /* Overlay */
         #drag-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 9998;
-            display: none;
-            background: transparent;
-            cursor: move; /* Garante que o cursor continue 'move' mesmo se o mouse sair da janela */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9998;
+            display: none; background: transparent; cursor: move;
         }
 
-        /* --- RESPONSIVIDADE MOBILE --- */
-        @media (max-width: 600px) { /* Alterado de 768px para 600px para permitir drag em telas médias */
+        /* Ajustes para ecrãs pequenos sem bloquear o movimento */
+        @media (max-width: 600px) {
             .aero-window {
-                width: 100% !important;
-                height: calc(100% - 52px) !important;
-                top: 0 !important;
-                left: 0 !important;
-                border-radius: 0;
-                border: none;
-                border-bottom: 1px solid rgba(255,255,255,0.3);
-                display: none;
-                flex-direction: column;
+                /* Removido !important para permitir arrastar */
+                /* Layout inicial padrão, mas movível */
             }
-            .title-bar { padding: 15px; cursor: default; }
-            .window-controls { display: flex; }
+            .title-bar { padding: 15px; }
             .window-controls .ctrl-btn:not(.close) { display: none; }
-            .ctrl-btn { width: 32px; height: 32px; font-size: 14px; }
             .taskbar { padding: 0 5px; justify-content: space-between; }
             .taskbar-item { flex-grow: 1; justify-content: center; padding: 0 8px; font-size: 11px; }
             .taskbar-item span { display: none; }
-            .taskbar-item i, .taskbar-item div { font-size: 16px; }
             #taskbar-clock-container { display: none; }
-            #bubbles-container { display: none; }
         }
 
-        /* Utilitários */
         .hidden { display: none; }
         .video-container {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-            overflow: hidden;
-            border-radius: 8px;
-            background: #000;
+            position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;
+            border-radius: 8px; background: #000;
         }
         .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
     </style>
@@ -276,17 +242,15 @@
 
     <!-- Fundo Aurora -->
     <div class="aurora">
-        <div class="aurora-element" style="width: 800px; height: 600px; background: #0078d7; top: -10%; left: -10%;"></div>
-        <div class="aurora-element" style="width: 600px; height: 600px; background: #32d322; bottom: -10%; right: -10%; animation-delay: -5s;"></div>
+        <div class="aurora-element" style="width: 700px; height: 500px; background: #0078d7; top: 0%; left: 0%;"></div>
+        <div class="aurora-element" style="width: 500px; height: 500px; background: #32d322; bottom: 0%; right: 0%;"></div>
     </div>
     <div id="bubbles-container"></div>
 
     <!-- JANELA: POMODORO -->
     <div class="aero-window" id="win-pomodoro" style="top: 30px; left: 30px; width: 350px; height: auto; max-height: 85vh;">
         <div class="title-bar" onmousedown="initWindowAction(event, 'win-pomodoro')">
-            <span class="text-xs font-bold text-gray-800 drop-shadow-sm flex items-center gap-2">
-                ⏱️ Aero Pomodoro
-            </span>
+            <span class="text-xs font-bold text-gray-800 drop-shadow-sm flex items-center gap-2">⏱️ Aero Pomodoro</span>
             <div class="window-controls">
                 <div class="ctrl-btn" onmousedown="event.stopPropagation()" onclick="minimizeWin('win-pomodoro')">_</div>
                 <div class="ctrl-btn close" onmousedown="event.stopPropagation()" onclick="closeWin('win-pomodoro')">X</div>
@@ -294,7 +258,7 @@
         </div>
         <div class="window-content text-center">
             <div id="pomodoro-status" class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Modo Foco</div>
-            <div class="text-6xl font-light text-blue-600 mb-2 tracking-tight tabular-nums transition-colors duration-500" id="pomodoro-time">25:00</div>
+            <div class="text-6xl font-light text-blue-600 mb-2 tracking-tight tabular-nums" id="pomodoro-time">25:00</div>
             
             <p id="active-task-name" class="text-xs font-bold text-gray-500 mb-4 h-4 overflow-hidden text-ellipsis whitespace-nowrap">Selecione uma tarefa abaixo</p>
 
@@ -382,12 +346,10 @@
         </div>
         <div class="window-content">
             <div class="video-container">
-                <!-- Playlist Atualizada -->
-                <iframe id="yt-player" src="https://www.youtube.com/embed/MY_B_4zMusU?list=PLNoJ-jBBofgR_EJkFMaXmKCLm9TtdAYTw&autoplay=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                <iframe id="yt-player" loading="lazy" src="https://www.youtube.com/embed/MY_B_4zMusU?list=PLNoJ-jBBofgR_EJkFMaXmKCLm9TtdAYTw&autoplay=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
             </div>
             <div class="mt-4 flex items-center justify-between px-2">
                 <div>
-                    <!-- Texto Atualizado -->
                     <h4 class="text-sm font-bold text-gray-800">Frutiger Aero Music</h4>
                     <p class="text-[10px] text-gray-500 uppercase tracking-tighter">Focus & Chill</p>
                 </div>
@@ -405,7 +367,7 @@
             </div>
         </div>
         <div class="window-content p-0">
-            <textarea id="notes-area" class="w-full h-full p-4 bg-white/80 border-none outline-none text-gray-800 text-sm resize-none" placeholder="Escreva aqui..." oninput="saveNotes()"></textarea>
+            <textarea id="notes-area" class="w-full h-full p-4 bg-transparent border-none outline-none text-gray-800 text-sm resize-none" placeholder="Escreva aqui..." oninput="saveNotes()"></textarea>
         </div>
     </div>
 
@@ -446,8 +408,8 @@
             if(confirm("Tem a certeza?")) { localStorage.clear(); location.reload(); }
         }
 
-        // --- SISTEMA DE ARRASTAR JANELAS (MANTIDO) ---
-        const isMobile = window.innerWidth <= 600; 
+        // --- SISTEMA DE ARRASTAR UNIVERSAL ---
+        // Removido isMobile check para garantir que funciona sempre
         let highestZ = 1000;
         let draggedElement = null;
         let offset = { x: 0, y: 0 };
@@ -455,7 +417,7 @@
 
         function initWindowAction(e, id) {
             focusWindow(id);
-            if (!isMobile) dragStart(e, id);
+            dragStart(e, id); // Drag sempre ativo
         }
 
         function focusWindow(id) {
@@ -510,7 +472,8 @@
         function closeWin(id) { document.getElementById(id).style.display = 'none'; playSound('close'); }
         function showWin(id) { 
             const el = document.getElementById(id);
-            if (isMobile) { el.style.top = '0'; el.style.left = '0'; }
+            // No mobile, resetamos posição para garantir que aparece
+            if (window.innerWidth <= 600) { el.style.top = '0'; el.style.left = '0'; }
             if(el.style.display !== 'flex') { el.style.display = 'flex'; playSound('open'); }
             focusWindow(id);
         }
@@ -527,62 +490,37 @@
             }
         }
 
-        // --- SISTEMA DE ÁUDIO OTIMIZADO (NOVO) ---
-        // Pré-carrega os sons para evitar atrasos (lag) e permite sobreposição.
+        // --- SISTEMA DE ÁUDIO ---
         const audioCache = {};
         const audioFiles = {
-            'start': 'sounds/start.mp3',
-            'alarm': 'sounds/alarm.mp3',
-            'success': 'sounds/success.mp3',
-            'open': 'sounds/open.mp3',
-            'close': 'sounds/close.mp3',
-            'click': 'sounds/click.mp3',
-            'type': 'sounds/type.mp3'
+            'start': 'sounds/start.mp3', 'alarm': 'sounds/alarm.mp3', 'success': 'sounds/success.mp3',
+            'open': 'sounds/open.mp3', 'close': 'sounds/close.mp3', 'click': 'sounds/click.mp3', 'type': 'sounds/type.mp3'
         };
 
-        // Função para pré-carregar
         function preloadAudio() {
             for (const [key, src] of Object.entries(audioFiles)) {
-                const audio = new Audio(src);
-                audio.load(); // Força o browser a carregar metadados/buffer
-                audioCache[key] = audio;
+                const audio = new Audio(src); audio.load(); audioCache[key] = audio;
             }
         }
 
         function playSound(type) {
             const baseAudio = audioCache[type];
             if (!baseAudio) return;
-
-            // Clona o nó de áudio para permitir tocar o mesmo som várias vezes simultaneamente
-            // Isso resolve o problema de sons "cortados" ou atrasados ao digitar rápido.
             const sound = baseAudio.cloneNode();
-            
-            // Configurações de volume
             if(type === 'type') sound.volume = 0.2;
             else if(type === 'click') sound.volume = 0.4;
             else sound.volume = 0.5;
-
-            sound.play().catch(e => {
-                // Silencia erros de autoplay se o usuário ainda não interagiu
-                // console.log("Erro playback: " + e);
-            });
+            sound.play().catch(e => {});
         }
 
-        // --- LISTENERS E NOTIFICAÇÕES ---
         document.addEventListener('DOMContentLoaded', () => {
-            preloadAudio(); // Carrega sons no início
-
+            preloadAudio();
             document.addEventListener('keydown', (e) => {
                 if (e.target.matches('input, textarea') && !e.ctrlKey && !e.altKey && !e.metaKey && e.key.length === 1) {
                     playSound('type');
                 }
             });
-
-            // ALTERADO DE MOUSEDOWN PARA CLICK
-            // Isso previne que o som toque apenas ao "encostar" (mousedown) ou arrastar
-            // Garante que só toca se realmente clicar e soltar.
             document.addEventListener('click', (e) => {
-                // Verificação estrita para garantir que é um elemento interativo
                 if (e.target.closest('button, .ctrl-btn, .taskbar-item, .glossy-btn, .habit-card, .task-item')) {
                     playSound('click');
                 }
@@ -614,41 +552,23 @@
             const el = document.getElementById('pomodoro-time');
             el.textContent = str;
             document.title = `${str} - Aero Focus`;
-            
-            if(isBreak) {
-                el.classList.remove('text-blue-600'); el.classList.add('text-green-500');
-                document.getElementById('pomodoro-status').textContent = "Modo Descanso ☕";
-            } else {
-                el.classList.add('text-blue-600'); el.classList.remove('text-green-500');
-                document.getElementById('pomodoro-status').textContent = "Modo Foco 🧠";
-            }
+            if(isBreak) { el.classList.remove('text-blue-600'); el.classList.add('text-green-500'); document.getElementById('pomodoro-status').textContent = "Modo Descanso ☕"; } 
+            else { el.classList.add('text-blue-600'); el.classList.remove('text-green-500'); document.getElementById('pomodoro-status').textContent = "Modo Foco 🧠"; }
         }
 
         function togglePomodoro() {
-            const btn = document.getElementById('btn-pomodoro');
-            requestNotificationPermission();
-            if (isRunning) {
-                clearInterval(timer); btn.textContent = "Retomar"; isRunning = false;
-            } else {
-                timer = setInterval(tick, 1000); btn.textContent = "Pausar"; isRunning = true; playSound('start');
-            }
+            const btn = document.getElementById('btn-pomodoro'); requestNotificationPermission();
+            if (isRunning) { clearInterval(timer); btn.textContent = "Retomar"; isRunning = false; } 
+            else { timer = setInterval(tick, 1000); btn.textContent = "Pausar"; isRunning = true; playSound('start'); }
         }
 
         function tick() {
-            timeLeft--;
-            updateTimerDisplay();
+            timeLeft--; updateTimerDisplay();
             if (!isBreak && timeLeft % 60 === 0 && timeLeft !== (workDuration*60)) {
                 totalTimeFocused++;
                 if(activeTaskId) {
                     const t = tasks.find(x => x.id === activeTaskId);
-                    if(t) {
-                        t.timeSpent++;
-                        if(t.isHabit) {
-                            const h = habits.find(habit => habit.id === t.id);
-                            if(h) { h.totalMinutes = (h.totalMinutes || 0) + 1; saveHabitsInternal(); renderHabits(); }
-                        }
-                        saveData(); renderTasks();
-                    }
+                    if(t) { t.timeSpent++; if(t.isHabit) { const h = habits.find(habit => habit.id === t.id); if(h) { h.totalMinutes = (h.totalMinutes || 0) + 1; saveHabitsInternal(); renderHabits(); } } saveData(); renderTasks(); }
                 }
                 updateStatsUI();
             }
@@ -658,10 +578,8 @@
         function completePhase() {
             clearInterval(timer); isRunning = false; playSound('alarm');
             if (!isBreak) {
-                sessionsCompleted++;
-                if(activeTaskId) { const t = tasks.find(x => x.id === activeTaskId); if(t) t.sessions++; saveData(); }
-                updateStatsUI();
-                sendNotification("Foco concluído!", "Hora de descansar.");
+                sessionsCompleted++; if(activeTaskId) { const t = tasks.find(x => x.id === activeTaskId); if(t) t.sessions++; saveData(); }
+                updateStatsUI(); sendNotification("Foco concluído!", "Hora de descansar.");
                 setTimeout(() => {
                     const startBreakNow = confirm("Sessão finalizada! Iniciar descanso?");
                     isBreak = true; timeLeft = breakDuration * 60;
@@ -670,23 +588,17 @@
                 }, 100);
             } else {
                 sendNotification("Pausa terminada!", "Voltar ao trabalho?");
-                isBreak = false; timeLeft = workDuration * 60;
-                document.getElementById('btn-pomodoro').textContent = "Iniciar Foco";
+                isBreak = false; timeLeft = workDuration * 60; document.getElementById('btn-pomodoro').textContent = "Iniciar Foco";
                 alert("Descanso acabou!"); updateTimerDisplay();
             }
         }
 
         function skipTimer() { completePhase(); }
-        function resetPomodoro() {
-            clearInterval(timer); isRunning = false; isBreak = false; timeLeft = workDuration * 60;
-            document.getElementById('btn-pomodoro').textContent = "Iniciar"; updateTimerDisplay();
-        }
+        function resetPomodoro() { clearInterval(timer); isRunning = false; isBreak = false; timeLeft = workDuration * 60; document.getElementById('btn-pomodoro').textContent = "Iniciar"; updateTimerDisplay(); }
 
         // --- TASK & HABITS ---
         const taskInput = document.getElementById('task-input');
-        taskInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && taskInput.value.trim()) { addTask(taskInput.value); taskInput.value = ''; }
-        });
+        taskInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && taskInput.value.trim()) { addTask(taskInput.value); taskInput.value = ''; } });
 
         function addTask(name, isHabit=false, linkedId=null) {
             tasks.push({ id: linkedId || Date.now(), name, timeSpent: 0, sessions: 0, completed: false, isHabit });
@@ -713,19 +625,15 @@
             saveHabitsInternal(); renderHabits();
         }
         function toggleHabit(id) {
-            const today = new Date().toDateString();
-            const habit = habits.find(h => h.id === id);
+            const today = new Date().toDateString(); const habit = habits.find(h => h.id === id);
             if (habit.lastDate === today) { habit.lastDate = null; habit.streak = Math.max(0, habit.streak - 1); }
             else { habit.lastDate = today; habit.streak++; playSound('success'); }
             saveHabitsInternal(); renderHabits();
         }
-        function deleteHabit(id) {
-            if(confirm('Apagar?')) { habits = habits.filter(h => h.id !== id); saveHabitsInternal(); renderHabits(); }
-        }
+        function deleteHabit(id) { if(confirm('Apagar?')) { habits = habits.filter(h => h.id !== id); saveHabitsInternal(); renderHabits(); } }
         function saveHabitsInternal() { localStorage.setItem('aero_habits', JSON.stringify(habits)); }
         function renderHabits() {
-            const list = document.getElementById('habit-list'); list.innerHTML = '';
-            const today = new Date().toDateString();
+            const list = document.getElementById('habit-list'); list.innerHTML = ''; const today = new Date().toDateString();
             if (habits.length === 0) { list.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-4">Nenhum hábito.</p>'; return; }
             habits.forEach(h => {
                 const isDone = h.lastDate === today;
@@ -739,25 +647,52 @@
             document.getElementById('date').textContent = now.toLocaleDateString('pt-PT', {day: '2-digit', month: 'short'});
         }
         
+        // --- ANIMAÇÃO DE BOLHAS OTIMIZADA (GPU) ---
+        const bubbles = [];
+        
         function initBubbles() {
-            if (isMobile) return; 
+            // Removido bloqueio isMobile para garantir que bolhas aparecem sempre
             const container = document.getElementById('bubbles-container');
-            for (let i = 0; i < 15; i++) {
+            // Aumentar para 25 bolhas
+            for (let i = 0; i < 25; i++) {
                 const b = document.createElement('div');
-                b.className = 'absolute rounded-full border border-white/20 pointer-events-none';
-                const size = Math.random() * 55 + 20; b.style.width = size+'px'; b.style.height = size+'px';
-                b.style.background = 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), rgba(255,255,255,0))';
-                b.style.left = Math.random()*100+'vw'; b.style.top = Math.random()*100+'vh';
-                container.appendChild(b); animateBubble(b);
+                b.className = 'bubble';
+                // Tamanhos variados
+                const size = Math.random() * 60 + 20; 
+                b.style.width = size + 'px';
+                b.style.height = size + 'px';
+                // Opacidade variável
+                b.style.opacity = Math.random() * 0.5 + 0.1;
+                
+                const startX = Math.random() * 100;
+                const startY = Math.random() * 100;
+                
+                bubbles.push({
+                    el: b,
+                    x: startX,
+                    y: startY,
+                    // Velocidade mais rápida e variada
+                    vx: (Math.random() - 0.5) * 0.25, 
+                    vy: (Math.random() - 0.5) * 0.25
+                });
+                
+                container.appendChild(b);
             }
+            animateBubblesLoop();
         }
-        function animateBubble(el) {
-            let x = parseFloat(el.style.left), y = parseFloat(el.style.top);
-            let vx = (Math.random()-0.5)*0.1, vy = (Math.random()-0.5)*0.1;
-            function step() {
-                x+=vx; y+=vy; if(x<0||x>100)vx*=-1; if(y<0||y>100)vy*=-1;
-                el.style.left=x+'vw'; el.style.top=y+'vh'; requestAnimationFrame(step);
-            } step();
+
+        function animateBubblesLoop() {
+            for (let i = 0; i < bubbles.length; i++) {
+                const b = bubbles[i];
+                b.x += b.vx;
+                b.y += b.vy;
+                
+                if (b.x < -10 || b.x > 110) b.vx *= -1;
+                if (b.y < -10 || b.y > 110) b.vy *= -1;
+                
+                b.el.style.transform = `translate3d(${b.x}vw, ${b.y}vh, 0)`;
+            }
+            requestAnimationFrame(animateBubblesLoop);
         }
 
         window.onload = () => { initBubbles(); setInterval(updateClock, 1000); updateClock(); showWin('win-pomodoro'); renderTasks(); renderHabits(); };
