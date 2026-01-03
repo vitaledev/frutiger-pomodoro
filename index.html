@@ -2,10 +2,10 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AeroOS Pro v3.5 - Clean Focus</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AeroOS Pro v7.4 - Calendar & Time Emoji</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --glass-bg: rgba(255, 255, 255, 0.3);
@@ -34,6 +34,8 @@
             z-index: -1;
             filter: blur(80px);
             opacity: 0.5;
+            pointer-events: none;
+            will-change: transform;
         }
         .aurora-element {
             position: absolute;
@@ -46,12 +48,12 @@
             to { transform: translate(25%, 25%) rotate(90deg) scale(1.2); }
         }
 
-        /* Janela Aero */
+        /* Janela Aero Base */
         .aero-window {
             position: absolute;
-            background: rgba(255, 255, 255, 0.22);
-            backdrop-filter: blur(25px) saturate(180%);
-            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
             border: 1.5px solid var(--glass-border);
             border-top: 1px solid rgba(255, 255, 255, 0.9);
             border-radius: 12px;
@@ -59,18 +61,34 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            min-width: 250px;
+            min-width: 280px;
             z-index: 10;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        /* Correção para Iframes durante o drag */
+        .aero-window.dragging iframe {
+            pointer-events: none;
+        }
+
+        /* Estilo simplificado ao arrastar para performance */
+        .aero-window.dragging {
+            opacity: 0.9;
+            cursor: move;
+            transition: none;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5); /* Sombra maior ao arrastar */
         }
 
         .title-bar {
-            background: linear-gradient(to bottom, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 100%);
+            background: linear-gradient(to bottom, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.3) 100%);
             padding: 10px 14px;
-            cursor: move;
+            cursor: move; /* Garante cursor de movimento */
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid rgba(255,255,255,0.3);
+            flex-shrink: 0;
+            user-select: none;
         }
 
         .window-controls { display: flex; gap: 6px; }
@@ -88,131 +106,159 @@
         .window-content {
             padding: 15px;
             color: #1a1a1a;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.85);
             flex-grow: 1;
+            overflow-y: auto;
         }
 
-        /* Botão Glossy */
+        /* Botão Glossy Style */
         .glossy-btn {
             background: linear-gradient(to bottom, #a1ffce 0%, #32d322 48%, #2ea02e 52%, #33bb33 100%);
             border: 1px solid #fff;
             border-radius: 20px;
-            padding: 8px 18px;
+            padding: 6px 16px;
             color: white;
             font-weight: 600;
             box-shadow: 0 3px 6px rgba(0,0,0,0.15), inset 0 1px 1px rgba(255,255,255,0.8);
             text-shadow: 0 1px 1px rgba(0,0,0,0.3);
             cursor: pointer;
             transition: transform 0.1s, filter 0.2s;
+            font-size: 13px;
         }
         .glossy-btn:hover { filter: brightness(1.1); }
         .glossy-btn:active { transform: scale(0.95); }
         .glossy-btn.blue { background: linear-gradient(to bottom, #87ceeb 0%, #0078d7 48%, #005aab 52%, #0078d7 100%); }
+        .glossy-btn.orange { background: linear-gradient(to bottom, #ffdca1 0%, #ff9900 48%, #e08600 52%, #ff9900 100%); }
+        .glossy-btn.gray { background: linear-gradient(to bottom, #e2e8f0 0%, #a0aec0 48%, #718096 52%, #a0aec0 100%); color: #fff; }
 
-        /* Stats Panel */
+        /* Inputs Aero */
+        .aero-input {
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            padding: 6px 10px;
+            width: 100%;
+            outline: none;
+            background: linear-gradient(to bottom, #f7fafc, #fff);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            font-size: 13px;
+        }
+        .aero-input:focus { border-color: var(--aero-blue); box-shadow: 0 0 0 2px rgba(0,120,215,0.2); }
+
+        /* Stats & Collapse */
         .stats-panel {
             background: linear-gradient(135deg, rgba(0,120,215,0.05) 0%, rgba(50,211,34,0.05) 100%);
             border: 1px solid rgba(0,0,0,0.1);
             border-radius: 8px;
-            padding: 12px;
-            margin-top: 12px;
+            padding: 10px;
+            margin-top: 8px;
             font-size: 12px;
-            transition: all 0.3s ease-in-out;
         }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 6px 0;
+            user-select: none;
+        }
+        .section-header:hover { opacity: 0.8; }
+        .chevron { transition: transform 0.3s; }
+        .chevron.collapsed { transform: rotate(-90deg); }
 
         /* Taskbar */
         .taskbar {
             position: fixed;
             bottom: 0; left: 0; width: 100%; height: 52px;
-            background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.4));
+            background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.5));
             backdrop-filter: blur(25px);
             border-top: 1px solid rgba(255,255,255,0.25);
-            display: flex; align-items: center; padding: 0 15px; z-index: 9999;
+            display: flex; align-items: center; padding: 0 10px; z-index: 9999;
+            overflow-x: auto;
         }
 
         .taskbar-item {
-            height: 40px; padding: 0 16px; margin: 0 4px;
+            height: 38px; padding: 0 14px; margin: 0 4px;
             background: rgba(255,255,255,0.15);
             border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 8px;
+            border-radius: 6px;
             display: flex; align-items: center; gap: 8px;
             cursor: pointer; transition: all 0.2s;
             font-size: 13px; color: white;
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+            white-space: nowrap;
         }
         .taskbar-item:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+        .taskbar-item:active { transform: translateY(0); }
 
-        .bubble {
-            position: absolute;
-            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.6), rgba(255,255,255,0));
-            border: 1px solid rgba(255,255,255,0.25);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 1;
+        /* Habit Tracker Specifics */
+        .habit-grid { display: grid; gap: 8px; }
+        .habit-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        .habit-card.done {
+            border-left: 4px solid var(--aero-green);
+            background: linear-gradient(to right, #f0fff4, #fff);
+        }
+        .habit-stats-mini {
+            font-size: 9px;
+            color: #718096;
+            margin-top: 2px;
+        }
+        .habit-streak {
+            font-size: 10px;
+            font-weight: bold;
+            color: #718096;
+            background: #edf2f7;
+            padding: 2px 6px;
+            border-radius: 10px;
         }
 
-        /* Overlay para evitar que o Iframe bloqueie o drag */
+        /* Overlay */
         #drag-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: 9998;
             display: none;
             background: transparent;
+            cursor: move; /* Garante que o cursor continue 'move' mesmo se o mouse sair da janela */
         }
 
-        /* Task List Enhancements */
-        .task-input {
-            border: 1px solid #cbd5e0;
-            border-radius: 8px;
-            padding: 8px 12px;
-            width: 100%;
-            margin-bottom: 10px;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .task-input:focus { border-color: var(--aero-blue); box-shadow: 0 0 5px rgba(0,120,215,0.3); }
-
-        .task-list {
-            max-height: 180px;
-            overflow-y: auto;
-            margin-top: 10px;
-            transition: all 0.3s ease-in-out;
-        }
-
-        .task-item {
-            display: flex; flex-direction: column; gap: 4px;
-            padding: 10px;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 13px;
-            cursor: pointer;
-            transition: background 0.2s;
-            border-radius: 6px;
-        }
-        .task-item:hover { background: rgba(0,120,215,0.05); }
-        .task-item.active { 
-            background: linear-gradient(to right, rgba(50,211,34,0.1), rgba(0,120,215,0.1)); 
-            border-left: 4px solid var(--aero-green);
-        }
-        
-        .task-main { display: flex; align-items: center; gap: 10px; }
-        .task-stats { display: flex; gap: 12px; font-size: 10px; color: #718096; margin-left: 26px; font-weight: 600; }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            items-center;
-            cursor: pointer;
-            padding: 4px 0;
-        }
-        .section-header:hover { opacity: 0.8; }
-
-        .chevron {
-            transition: transform 0.3s;
-        }
-        .chevron.collapsed {
-            transform: rotate(-90deg);
+        /* --- RESPONSIVIDADE MOBILE --- */
+        @media (max-width: 600px) { /* Alterado de 768px para 600px para permitir drag em telas médias */
+            .aero-window {
+                width: 100% !important;
+                height: calc(100% - 52px) !important;
+                top: 0 !important;
+                left: 0 !important;
+                border-radius: 0;
+                border: none;
+                border-bottom: 1px solid rgba(255,255,255,0.3);
+                display: none;
+                flex-direction: column;
+            }
+            .title-bar { padding: 15px; cursor: default; }
+            .window-controls { display: flex; }
+            .window-controls .ctrl-btn:not(.close) { display: none; }
+            .ctrl-btn { width: 32px; height: 32px; font-size: 14px; }
+            .taskbar { padding: 0 5px; justify-content: space-between; }
+            .taskbar-item { flex-grow: 1; justify-content: center; padding: 0 8px; font-size: 11px; }
+            .taskbar-item span { display: none; }
+            .taskbar-item i, .taskbar-item div { font-size: 16px; }
+            #taskbar-clock-container { display: none; }
+            #bubbles-container { display: none; }
         }
 
+        /* Utilitários */
+        .hidden { display: none; }
         .video-container {
             position: relative;
             padding-bottom: 56.25%;
@@ -220,12 +266,8 @@
             overflow: hidden;
             border-radius: 8px;
             background: #000;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        .video-container iframe {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-        }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
     </style>
 </head>
 <body>
@@ -240,56 +282,99 @@
     <div id="bubbles-container"></div>
 
     <!-- JANELA: POMODORO -->
-    <div class="aero-window" id="win-pomodoro" style="top: 40px; left: 40px; width: 360px;">
+    <div class="aero-window" id="win-pomodoro" style="top: 30px; left: 30px; width: 350px; height: auto; max-height: 85vh;">
         <div class="title-bar" onmousedown="initWindowAction(event, 'win-pomodoro')">
-            <span class="text-xs font-bold text-gray-800 drop-shadow-sm">Aero Pomodoro Focus</span>
+            <span class="text-xs font-bold text-gray-800 drop-shadow-sm flex items-center gap-2">
+                ⏱️ Aero Pomodoro
+            </span>
             <div class="window-controls">
                 <div class="ctrl-btn" onmousedown="event.stopPropagation()" onclick="minimizeWin('win-pomodoro')">_</div>
                 <div class="ctrl-btn close" onmousedown="event.stopPropagation()" onclick="closeWin('win-pomodoro')">X</div>
             </div>
         </div>
         <div class="window-content text-center">
-            <div class="text-5xl font-light text-blue-600 mb-3 tracking-tight" id="pomodoro-time">25:00</div>
+            <div id="pomodoro-status" class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Modo Foco</div>
+            <div class="text-6xl font-light text-blue-600 mb-2 tracking-tight tabular-nums transition-colors duration-500" id="pomodoro-time">25:00</div>
             
-            <p id="active-task-name" class="text-xs font-bold text-green-600 mb-4 opacity-80 uppercase tracking-widest">A aguardar seleção...</p>
+            <p id="active-task-name" class="text-xs font-bold text-gray-500 mb-4 h-4 overflow-hidden text-ellipsis whitespace-nowrap">Selecione uma tarefa abaixo</p>
 
-            <div class="flex justify-center gap-3 mb-5">
-                <button class="glossy-btn text-xs" id="btn-pomodoro" onclick="togglePomodoro()">Iniciar</button>
-                <button class="glossy-btn blue text-xs" onclick="resetPomodoro()">Reset</button>
+            <div class="flex justify-center gap-2 mb-4">
+                <button class="glossy-btn text-xs w-20" id="btn-pomodoro" onclick="togglePomodoro()">Iniciar</button>
+                <button class="glossy-btn blue text-xs" onclick="skipTimer()">Pular</button>
+                <button class="glossy-btn gray text-xs" onclick="resetPomodoro()">Reset</button>
             </div>
             
-            <!-- Secção de Métricas (Colapsável) -->
+             <div class="border-t pt-2 mt-2">
+                <div class="section-header" onclick="toggleSection('settings-body', 'chevron-settings')">
+                    <span class="font-bold uppercase text-[10px] text-gray-500 tracking-wider">Configuração</span>
+                    <svg id="chevron-settings" class="chevron collapsed w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div id="settings-body" class="stats-panel text-left hidden">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[10px] text-gray-500">Foco (min)</label>
+                            <input type="number" id="input-work" value="25" class="aero-input" min="1" max="60" onchange="updateSettings()">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500">Pausa (min)</label>
+                            <input type="number" id="input-break" value="5" class="aero-input" min="1" max="30" onchange="updateSettings()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="border-t pt-2 mt-2">
                 <div class="section-header" onclick="toggleSection('stats-body', 'chevron-stats')">
-                    <span class="font-bold uppercase text-[10px] text-gray-500 tracking-wider">Métricas Globais</span>
+                    <span class="font-bold uppercase text-[10px] text-gray-500 tracking-wider">Estatísticas</span>
                     <svg id="chevron-stats" class="chevron w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </div>
                 <div id="stats-body" class="stats-panel text-left">
-                    <div class="flex justify-between text-gray-700"><span>Sessões Totais:</span> <b id="stat-sessions" class="text-blue-600">0</b></div>
-                    <div class="flex justify-between text-gray-700"><span>Tempo Total:</span> <b id="stat-time" class="text-green-600">0m</b></div>
+                    <div class="flex justify-between text-gray-700"><span>Sessões Hoje:</span> <b id="stat-sessions" class="text-blue-600">0</b></div>
+                    <div class="flex justify-between text-gray-700"><span>Tempo Focado:</span> <b id="stat-time" class="text-green-600">0m</b></div>
                 </div>
             </div>
 
-            <!-- Secção de Tarefas (Colapsável) -->
             <div class="text-left border-t mt-3 pt-3">
                 <div class="section-header mb-2" onclick="toggleSection('tasks-body', 'chevron-tasks')">
-                    <span class="text-[10px] uppercase font-bold text-gray-400">Tarefas</span>
+                    <span class="text-[10px] uppercase font-bold text-gray-400">Lista de Tarefas</span>
                     <svg id="chevron-tasks" class="chevron w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </div>
                 <div id="tasks-body">
-                    <input type="text" id="task-input" class="task-input text-xs" placeholder="Adicionar nova tarefa...">
-                    <div id="task-list" class="task-list">
-                        <!-- Tarefas dinâmicas -->
-                    </div>
+                    <input type="text" id="task-input" class="aero-input mb-2" placeholder="Nova tarefa (Enter)...">
+                    <div id="task-list" class="max-h-[120px] overflow-y-auto"></div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- JANELA: HABIT TRACKER -->
+    <div class="aero-window" id="win-habits" style="top: 50px; left: 400px; width: 320px; height: 400px; display: none;">
+        <div class="title-bar" onmousedown="initWindowAction(event, 'win-habits')">
+            <span class="text-xs font-bold text-gray-800 flex items-center gap-2">🌱 Habit Tracker</span>
+            <div class="window-controls">
+                <div class="ctrl-btn" onmousedown="event.stopPropagation()" onclick="minimizeWin('win-habits')">_</div>
+                <div class="ctrl-btn close" onmousedown="event.stopPropagation()" onclick="closeWin('win-habits')">X</div>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="habit-input" class="aero-input" placeholder="Novo hábito...">
+                <button class="glossy-btn orange text-xs" onclick="addHabit()">+</button>
+            </div>
+            
+            <div id="habit-list" class="habit-grid"></div>
+            
+            <div class="mt-4 text-center">
+                <p class="text-[10px] text-gray-500">Dados salvos automaticamente.</p>
+                <button class="text-[10px] text-blue-500 underline" onclick="clearData()">Limpar tudo</button>
+            </div>
+        </div>
+    </div>
+
     <!-- JANELA: WINDOWS MEDIA PLAYER -->
-    <div class="aero-window" id="win-media" style="top: 80px; left: 420px; width: 480px;">
+    <div class="aero-window" id="win-media" style="top: 100px; left: 150px; width: 450px; display: none;">
         <div class="title-bar" onmousedown="initWindowAction(event, 'win-media')">
-            <span class="text-xs font-bold text-gray-800">Windows Media Player - Playlist Aero</span>
+            <span class="text-xs font-bold text-gray-800">Media Player</span>
             <div class="window-controls">
                 <div class="ctrl-btn" onmousedown="event.stopPropagation()" onclick="minimizeWin('win-media')">_</div>
                 <div class="ctrl-btn close" onmousedown="event.stopPropagation()" onclick="closeWin('win-media')">X</div>
@@ -297,22 +382,21 @@
         </div>
         <div class="window-content">
             <div class="video-container">
-                <iframe id="yt-player" src="https://www.youtube.com/embed/videoseries?list=PLNoJ-jBBofgR_EJkFMaXmKCLm9TtdAYTw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                <!-- Playlist Atualizada -->
+                <iframe id="yt-player" src="https://www.youtube.com/embed/MY_B_4zMusU?list=PLNoJ-jBBofgR_EJkFMaXmKCLm9TtdAYTw&autoplay=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
             </div>
             <div class="mt-4 flex items-center justify-between px-2">
                 <div>
+                    <!-- Texto Atualizado -->
                     <h4 class="text-sm font-bold text-gray-800">Frutiger Aero Music</h4>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-tighter">Liquid & Nature Vibes</p>
-                </div>
-                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
-                    <svg viewBox="0 0 24 24" class="w-4 h-4 fill-white"><path d="M12,3V13.55C11.41,13.21 10.73,13 10,13C7.79,13 6,14.79 6,17C6,19.21 7.79,21 10,21C12.21,21 14,19.21 14,17V7H18V3H12Z" /></svg>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-tighter">Focus & Chill</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- JANELA: NOTAS -->
-    <div class="aero-window" id="win-notes" style="top: 450px; left: 120px; width: 320px; height: 180px;">
+    <div class="aero-window" id="win-notes" style="top: 200px; left: 200px; width: 300px; height: 200px; display: none;">
         <div class="title-bar" onmousedown="initWindowAction(event, 'win-notes')">
             <span class="text-xs font-bold text-gray-800">Notas Rápidas</span>
             <div class="window-controls">
@@ -321,33 +405,49 @@
             </div>
         </div>
         <div class="window-content p-0">
-            <textarea class="w-full h-full p-4 bg-white border-none outline-none text-gray-800 text-sm resize-none" placeholder="Escreva as suas notas aqui..."></textarea>
+            <textarea id="notes-area" class="w-full h-full p-4 bg-white/80 border-none outline-none text-gray-800 text-sm resize-none" placeholder="Escreva aqui..." oninput="saveNotes()"></textarea>
         </div>
     </div>
 
     <!-- BARRA DE TAREFAS -->
     <footer class="taskbar">
-        <div class="w-10 h-10 bg-blue-600 rounded-full border-2 border-white/60 shadow-lg flex items-center justify-center cursor-pointer hover:scale-110 transition active:scale-95">
+        <div class="w-10 h-10 bg-blue-600 rounded-full border-2 border-white/60 shadow-lg flex items-center justify-center cursor-pointer hover:scale-110 transition active:scale-95 shrink-0" onclick="toggleStartMenu()">
              <svg viewBox="0 0 24 24" class="w-6 h-6 fill-white drop-shadow"><path d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z" /></svg>
         </div>
-        <div class="h-8 w-[1px] bg-white/20 mx-4"></div>
-        <div class="flex gap-2" id="taskbar-apps">
-            <div class="taskbar-item" onclick="showWin('win-pomodoro')">⏱️ Foco</div>
-            <div class="taskbar-item" onclick="showWin('win-media')">🎵 Media</div>
-            <div class="taskbar-item" onclick="showWin('win-notes')">📝 Notas</div>
+        
+        <div class="h-8 w-[1px] bg-white/20 mx-2 md:mx-4 shrink-0"></div>
+        
+        <div class="flex gap-1 md:gap-2 flex-grow overflow-x-auto no-scrollbar" id="taskbar-apps">
+            <div class="taskbar-item" onclick="showWin('win-pomodoro')"><span>⏱️ Foco</span></div>
+            <div class="taskbar-item" onclick="showWin('win-habits')"><span>🌱 Hábitos</span></div>
+            <div class="taskbar-item" onclick="showWin('win-media')"><span>🎵 Media</span></div>
+            <div class="taskbar-item" onclick="showWin('win-notes')"><span>📝 Notas</span></div>
         </div>
-        <div class="ml-auto flex items-center gap-4 text-xs font-bold mr-4 text-white drop-shadow-md">
+
+        <div id="taskbar-clock-container" class="ml-auto flex items-center gap-4 text-xs font-bold mr-2 text-white drop-shadow-md shrink-0 cursor-pointer hover:opacity-80 transition" onclick="window.open('https://calendar.google.com', '_blank')" title="Abrir Google Calendar">
             <span id="date" class="hidden md:block opacity-80 font-normal">01 Jan</span>
             <span id="clock" class="text-lg">12:00</span>
         </div>
     </footer>
 
     <script>
-        // --- DATA STATE ---
-        let tasks = [];
-        let activeTaskId = null;
+        // --- DATA E PERSISTÊNCIA ---
+        let tasks = JSON.parse(localStorage.getItem('aero_tasks')) || [];
+        let habits = JSON.parse(localStorage.getItem('aero_habits')) || [];
+        let notes = localStorage.getItem('aero_notes') || "";
+        document.getElementById('notes-area').value = notes;
 
-        // --- GESTÃO DE JANELAS (DRAG & FOCUS) ---
+        function saveData() {
+            localStorage.setItem('aero_tasks', JSON.stringify(tasks));
+            localStorage.setItem('aero_habits', JSON.stringify(habits));
+        }
+        function saveNotes() { localStorage.setItem('aero_notes', document.getElementById('notes-area').value); }
+        function clearData() {
+            if(confirm("Tem a certeza?")) { localStorage.clear(); location.reload(); }
+        }
+
+        // --- SISTEMA DE ARRASTAR JANELAS (MANTIDO) ---
+        const isMobile = window.innerWidth <= 600; 
         let highestZ = 1000;
         let draggedElement = null;
         let offset = { x: 0, y: 0 };
@@ -355,14 +455,17 @@
 
         function initWindowAction(e, id) {
             focusWindow(id);
-            dragStart(e, id);
+            if (!isMobile) dragStart(e, id);
         }
 
         function focusWindow(id) {
             highestZ++;
             const el = document.getElementById(id);
             el.style.zIndex = highestZ;
-            el.style.opacity = "1";
+            if(el.style.display === 'none') {
+                el.style.display = 'flex';
+                playSound('open');
+            }
         }
 
         function dragStart(e, id) {
@@ -370,202 +473,264 @@
             const rect = draggedElement.getBoundingClientRect();
             offset.x = e.clientX - rect.left;
             offset.y = e.clientY - rect.top;
+            
+            draggedElement.classList.add('dragging');
             dragOverlay.style.display = 'block';
-
+            
             document.addEventListener('mousemove', dragMove);
             document.addEventListener('mouseup', dragEnd);
         }
 
         function dragMove(e) {
             if (!draggedElement) return;
+            e.preventDefault(); 
             let x = e.clientX - offset.x;
             let y = e.clientY - offset.y;
+            
             const maxX = window.innerWidth - draggedElement.offsetWidth;
-            const maxY = window.innerHeight - 52;
+            const maxY = window.innerHeight - 52; 
+            
             x = Math.max(0, Math.min(x, maxX));
             y = Math.max(0, Math.min(y, maxY));
+            
             draggedElement.style.left = x + 'px';
             draggedElement.style.top = y + 'px';
         }
 
         function dragEnd() {
-            draggedElement = null;
+            if (draggedElement) {
+                draggedElement.classList.remove('dragging');
+                draggedElement = null;
+            }
             dragOverlay.style.display = 'none';
             document.removeEventListener('mousemove', dragMove);
             document.removeEventListener('mouseup', dragEnd);
         }
 
-        function closeWin(id) { document.getElementById(id).style.display = 'none'; }
+        function closeWin(id) { document.getElementById(id).style.display = 'none'; playSound('close'); }
         function showWin(id) { 
             const el = document.getElementById(id);
-            el.style.display = 'flex'; 
+            if (isMobile) { el.style.top = '0'; el.style.left = '0'; }
+            if(el.style.display !== 'flex') { el.style.display = 'flex'; playSound('open'); }
             focusWindow(id);
         }
-        function minimizeWin(id) { document.getElementById(id).style.display = 'none'; }
-
-        // --- UI TOGGLES ---
+        function minimizeWin(id) { document.getElementById(id).style.display = 'none'; playSound('close'); }
+        function toggleStartMenu() { playSound('click'); }
+        
         function toggleSection(contentId, chevronId) {
             const content = document.getElementById(contentId);
             const chevron = document.getElementById(chevronId);
-            
             if (content.classList.contains('hidden')) {
-                content.classList.remove('hidden');
-                chevron.classList.remove('collapsed');
+                content.classList.remove('hidden'); chevron.classList.remove('collapsed');
             } else {
-                content.classList.add('hidden');
-                chevron.classList.add('collapsed');
+                content.classList.add('hidden'); chevron.classList.add('collapsed');
             }
         }
 
-        // --- POMODORO LOGIC & STATS ---
-        let timer = null;
-        let timeLeft = 25 * 60;
-        let isRunning = false;
-        let sessionsCompletedGlobal = 0;
-        let totalMinutesFocusGlobal = 0;
+        // --- SISTEMA DE ÁUDIO OTIMIZADO (NOVO) ---
+        // Pré-carrega os sons para evitar atrasos (lag) e permite sobreposição.
+        const audioCache = {};
+        const audioFiles = {
+            'start': 'sounds/start.mp3',
+            'alarm': 'sounds/alarm.mp3',
+            'success': 'sounds/success.mp3',
+            'open': 'sounds/open.mp3',
+            'close': 'sounds/close.mp3',
+            'click': 'sounds/click.mp3',
+            'type': 'sounds/type.mp3'
+        };
+
+        // Função para pré-carregar
+        function preloadAudio() {
+            for (const [key, src] of Object.entries(audioFiles)) {
+                const audio = new Audio(src);
+                audio.load(); // Força o browser a carregar metadados/buffer
+                audioCache[key] = audio;
+            }
+        }
+
+        function playSound(type) {
+            const baseAudio = audioCache[type];
+            if (!baseAudio) return;
+
+            // Clona o nó de áudio para permitir tocar o mesmo som várias vezes simultaneamente
+            // Isso resolve o problema de sons "cortados" ou atrasados ao digitar rápido.
+            const sound = baseAudio.cloneNode();
+            
+            // Configurações de volume
+            if(type === 'type') sound.volume = 0.2;
+            else if(type === 'click') sound.volume = 0.4;
+            else sound.volume = 0.5;
+
+            sound.play().catch(e => {
+                // Silencia erros de autoplay se o usuário ainda não interagiu
+                // console.log("Erro playback: " + e);
+            });
+        }
+
+        // --- LISTENERS E NOTIFICAÇÕES ---
+        document.addEventListener('DOMContentLoaded', () => {
+            preloadAudio(); // Carrega sons no início
+
+            document.addEventListener('keydown', (e) => {
+                if (e.target.matches('input, textarea') && !e.ctrlKey && !e.altKey && !e.metaKey && e.key.length === 1) {
+                    playSound('type');
+                }
+            });
+
+            // ALTERADO DE MOUSEDOWN PARA CLICK
+            // Isso previne que o som toque apenas ao "encostar" (mousedown) ou arrastar
+            // Garante que só toca se realmente clicar e soltar.
+            document.addEventListener('click', (e) => {
+                // Verificação estrita para garantir que é um elemento interativo
+                if (e.target.closest('button, .ctrl-btn, .taskbar-item, .glossy-btn, .habit-card, .task-item')) {
+                    playSound('click');
+                }
+            });
+        });
+
+        function requestNotificationPermission() { if ("Notification" in window) Notification.requestPermission(); }
+        function sendNotification(title, body) {
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification(title, { body: body });
+            }
+        }
+
+        // --- POMODORO LOGIC ---
+        let timer = null, workDuration = 25, breakDuration = 5, timeLeft = 25*60;
+        let isRunning = false, isBreak = false, sessionsCompleted = 0, totalTimeFocused = 0, activeTaskId = null;
+
+        function updateSettings() {
+            const w = parseInt(document.getElementById('input-work').value);
+            const b = parseInt(document.getElementById('input-break').value);
+            if(w>0) workDuration = w; if(b>0) breakDuration = b;
+            if(!isRunning) resetPomodoro();
+        }
 
         function updateTimerDisplay() {
             const mins = Math.floor(timeLeft / 60);
             const secs = timeLeft % 60;
-            document.getElementById('pomodoro-time').textContent = 
-                `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            const str = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            const el = document.getElementById('pomodoro-time');
+            el.textContent = str;
+            document.title = `${str} - Aero Focus`;
+            
+            if(isBreak) {
+                el.classList.remove('text-blue-600'); el.classList.add('text-green-500');
+                document.getElementById('pomodoro-status').textContent = "Modo Descanso ☕";
+            } else {
+                el.classList.add('text-blue-600'); el.classList.remove('text-green-500');
+                document.getElementById('pomodoro-status').textContent = "Modo Foco 🧠";
+            }
         }
 
         function togglePomodoro() {
             const btn = document.getElementById('btn-pomodoro');
+            requestNotificationPermission();
             if (isRunning) {
-                clearInterval(timer);
-                btn.textContent = "Retomar";
+                clearInterval(timer); btn.textContent = "Retomar"; isRunning = false;
             } else {
-                timer = setInterval(() => {
-                    timeLeft--;
-                    updateTimerDisplay();
-                    
-                    if (timeLeft % 60 === 0 && timeLeft !== (25*60)) {
-                        totalMinutesFocusGlobal++;
-                        if(activeTaskId !== null) {
-                            const task = tasks.find(t => t.id === activeTaskId);
-                            if(task) task.timeSpent++;
-                        }
-                        updateUI();
-                    }
-
-                    if (timeLeft <= 0) {
-                        clearInterval(timer);
-                        sessionsCompletedGlobal++;
-                        if(activeTaskId !== null) {
-                            const task = tasks.find(t => t.id === activeTaskId);
-                            if(task) task.sessions++;
-                        }
-                        updateUI();
-                        alert("Sessão finalizada!");
-                        resetPomodoro();
-                    }
-                }, 1000);
-                btn.textContent = "Pausar";
+                timer = setInterval(tick, 1000); btn.textContent = "Pausar"; isRunning = true; playSound('start');
             }
-            isRunning = !isRunning;
         }
 
-        function resetPomodoro() {
-            clearInterval(timer);
-            timeLeft = 25 * 60;
-            isRunning = false;
+        function tick() {
+            timeLeft--;
             updateTimerDisplay();
-            document.getElementById('btn-pomodoro').textContent = "Iniciar";
+            if (!isBreak && timeLeft % 60 === 0 && timeLeft !== (workDuration*60)) {
+                totalTimeFocused++;
+                if(activeTaskId) {
+                    const t = tasks.find(x => x.id === activeTaskId);
+                    if(t) {
+                        t.timeSpent++;
+                        if(t.isHabit) {
+                            const h = habits.find(habit => habit.id === t.id);
+                            if(h) { h.totalMinutes = (h.totalMinutes || 0) + 1; saveHabitsInternal(); renderHabits(); }
+                        }
+                        saveData(); renderTasks();
+                    }
+                }
+                updateStatsUI();
+            }
+            if (timeLeft <= 0) completePhase();
         }
 
-        // --- TASK MANAGEMENT ---
-        const taskInput = document.getElementById('task-input');
-        const taskListEl = document.getElementById('task-list');
-
-        taskInput.onkeypress = (e) => {
-            if (e.key === 'Enter' && taskInput.value.trim() !== "") {
-                const newTask = {
-                    id: Date.now(),
-                    name: taskInput.value,
-                    timeSpent: 0,
-                    sessions: 0,
-                    completed: false
-                };
-                tasks.push(newTask);
-                taskInput.value = "";
-                renderTasks();
+        function completePhase() {
+            clearInterval(timer); isRunning = false; playSound('alarm');
+            if (!isBreak) {
+                sessionsCompleted++;
+                if(activeTaskId) { const t = tasks.find(x => x.id === activeTaskId); if(t) t.sessions++; saveData(); }
+                updateStatsUI();
+                sendNotification("Foco concluído!", "Hora de descansar.");
+                setTimeout(() => {
+                    const startBreakNow = confirm("Sessão finalizada! Iniciar descanso?");
+                    isBreak = true; timeLeft = breakDuration * 60;
+                    if(startBreakNow) togglePomodoro(); else document.getElementById('btn-pomodoro').textContent = "Iniciar Pausa";
+                    updateTimerDisplay();
+                }, 100);
+            } else {
+                sendNotification("Pausa terminada!", "Voltar ao trabalho?");
+                isBreak = false; timeLeft = workDuration * 60;
+                document.getElementById('btn-pomodoro').textContent = "Iniciar Foco";
+                alert("Descanso acabou!"); updateTimerDisplay();
             }
-        };
+        }
 
-        function selectTask(id) {
-            activeTaskId = id;
-            const task = tasks.find(t => t.id === id);
-            document.getElementById('active-task-name').textContent = `Foco em: ${task.name}`;
-            renderTasks();
+        function skipTimer() { completePhase(); }
+        function resetPomodoro() {
+            clearInterval(timer); isRunning = false; isBreak = false; timeLeft = workDuration * 60;
+            document.getElementById('btn-pomodoro').textContent = "Iniciar"; updateTimerDisplay();
+        }
+
+        // --- TASK & HABITS ---
+        const taskInput = document.getElementById('task-input');
+        taskInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && taskInput.value.trim()) { addTask(taskInput.value); taskInput.value = ''; }
+        });
+
+        function addTask(name, isHabit=false, linkedId=null) {
+            tasks.push({ id: linkedId || Date.now(), name, timeSpent: 0, sessions: 0, completed: false, isHabit });
+            saveData(); renderTasks();
         }
 
         function renderTasks() {
-            taskListEl.innerHTML = "";
-            tasks.forEach(task => {
-                const item = document.createElement('div');
-                item.className = `task-item ${activeTaskId === task.id ? 'active' : ''}`;
-                item.onclick = () => selectTask(task.id);
-                
-                item.innerHTML = `
-                    <div class="task-main">
-                        <input type="checkbox" class="w-4 h-4 accent-green-500" ${task.completed ? 'checked' : ''} 
-                               onclick="event.stopPropagation(); toggleTaskComplete(${task.id})"> 
-                        <span class="text-gray-700 font-medium ${task.completed ? 'line-through opacity-50' : ''}">${task.name}</span>
-                    </div>
-                    <div class="task-stats">
-                        <span>⏳ ${task.timeSpent}m</span>
-                        <span>🎯 ${task.sessions} sessões</span>
-                    </div>
-                `;
-                taskListEl.prepend(item);
+            const list = document.getElementById('task-list'); list.innerHTML = '';
+            tasks.forEach(t => {
+                const div = document.createElement('div');
+                div.className = `flex justify-between items-center p-2 mb-1 rounded cursor-pointer border ${activeTaskId === t.id ? 'bg-blue-50 border-blue-200' : 'bg-white border-transparent hover:bg-gray-50'}`;
+                div.onclick = () => { activeTaskId = t.id; document.getElementById('active-task-name').textContent = `Focando em: ${t.name}`; renderTasks(); };
+                div.innerHTML = `<div class="flex items-center gap-2 overflow-hidden"><span class="text-xs ${t.completed?'line-through text-gray-400':'text-gray-700 font-medium'} truncate">${t.isHabit?'🌱':''} ${t.name}</span></div><div class="text-[10px] text-gray-400 font-bold whitespace-nowrap">⏳ ${t.timeSpent}m / ${t.sessions}🍅</div>`;
+                list.appendChild(div);
             });
         }
+        function updateStatsUI() { document.getElementById('stat-sessions').textContent = sessionsCompleted; document.getElementById('stat-time').textContent = totalTimeFocused + 'm'; }
 
-        function toggleTaskComplete(id) {
-            const task = tasks.find(t => t.id === id);
-            if(task) task.completed = !task.completed;
-            renderTasks();
+        function addHabit() {
+            const val = document.getElementById('habit-input').value.trim(); if(!val) return;
+            const habitId = Date.now();
+            habits.push({ id: habitId, name: val, streak: 0, lastDate: null, totalMinutes: 0 });
+            addTask(val, true, habitId); document.getElementById('habit-input').value = '';
+            saveHabitsInternal(); renderHabits();
         }
-
-        function updateUI() {
-            document.getElementById('stat-sessions').textContent = sessionsCompletedGlobal;
-            document.getElementById('stat-time').textContent = totalMinutesFocusGlobal + "m";
-            renderTasks();
+        function toggleHabit(id) {
+            const today = new Date().toDateString();
+            const habit = habits.find(h => h.id === id);
+            if (habit.lastDate === today) { habit.lastDate = null; habit.streak = Math.max(0, habit.streak - 1); }
+            else { habit.lastDate = today; habit.streak++; playSound('success'); }
+            saveHabitsInternal(); renderHabits();
         }
-
-        // --- SISTEMA DE BOLHAS ---
-        function initBubbles() {
-            const container = document.getElementById('bubbles-container');
-            for (let i = 0; i < 20; i++) {
-                const b = document.createElement('div');
-                b.className = 'bubble';
-                const size = Math.random() * 55 + 20;
-                b.style.width = size + 'px';
-                b.style.height = size + 'px';
-                b.style.left = Math.random() * 100 + 'vw';
-                b.style.top = Math.random() * 100 + 'vh';
-                container.appendChild(b);
-                animateBubble(b);
-            }
+        function deleteHabit(id) {
+            if(confirm('Apagar?')) { habits = habits.filter(h => h.id !== id); saveHabitsInternal(); renderHabits(); }
         }
-
-        function animateBubble(el) {
-            let x = parseFloat(el.style.left);
-            let y = parseFloat(el.style.top);
-            let vx = (Math.random() - 0.5) * 0.12;
-            let vy = (Math.random() - 0.5) * 0.12;
-
-            function step() {
-                x += vx; y += vy;
-                if (x < 0 || x > 100) vx *= -1;
-                if (y < 0 || y > 100) vy *= -1;
-                el.style.left = x + 'vw';
-                el.style.top = y + 'vh';
-                requestAnimationFrame(step);
-            }
-            step();
+        function saveHabitsInternal() { localStorage.setItem('aero_habits', JSON.stringify(habits)); }
+        function renderHabits() {
+            const list = document.getElementById('habit-list'); list.innerHTML = '';
+            const today = new Date().toDateString();
+            if (habits.length === 0) { list.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-4">Nenhum hábito.</p>'; return; }
+            habits.forEach(h => {
+                const isDone = h.lastDate === today;
+                list.innerHTML += `<div class="habit-card ${isDone?'done':''}"><div class="flex items-center gap-3 w-full"><div onclick="toggleHabit(${h.id})" class="w-5 h-5 flex-shrink-0 rounded-full border cursor-pointer flex items-center justify-center ${isDone?'bg-green-500 border-green-600':'bg-gray-100 border-gray-300'}">${isDone?'<span class="text-white text-xs">✓</span>':''}</div><div class="flex-grow"><div class="text-xs font-bold text-gray-700 flex justify-between"><span>${h.name}</span><button onclick="deleteHabit(${h.id})" class="text-gray-300 hover:text-red-500 text-[10px]">✕</button></div><div class="habit-stats-mini flex justify-between items-center mt-1"><span class="habit-streak">🔥 ${h.streak} dias</span><span class="text-blue-500 font-semibold">📚 ${Math.floor(h.totalMinutes/60)}h ${h.totalMinutes%60}m</span></div></div></div></div>`;
+            });
         }
 
         function updateClock() {
@@ -573,17 +738,29 @@
             document.getElementById('clock').textContent = now.toLocaleTimeString('pt-PT', {hour: '2-digit', minute:'2-digit'});
             document.getElementById('date').textContent = now.toLocaleDateString('pt-PT', {day: '2-digit', month: 'short'});
         }
+        
+        function initBubbles() {
+            if (isMobile) return; 
+            const container = document.getElementById('bubbles-container');
+            for (let i = 0; i < 15; i++) {
+                const b = document.createElement('div');
+                b.className = 'absolute rounded-full border border-white/20 pointer-events-none';
+                const size = Math.random() * 55 + 20; b.style.width = size+'px'; b.style.height = size+'px';
+                b.style.background = 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), rgba(255,255,255,0))';
+                b.style.left = Math.random()*100+'vw'; b.style.top = Math.random()*100+'vh';
+                container.appendChild(b); animateBubble(b);
+            }
+        }
+        function animateBubble(el) {
+            let x = parseFloat(el.style.left), y = parseFloat(el.style.top);
+            let vx = (Math.random()-0.5)*0.1, vy = (Math.random()-0.5)*0.1;
+            function step() {
+                x+=vx; y+=vy; if(x<0||x>100)vx*=-1; if(y<0||y>100)vy*=-1;
+                el.style.left=x+'vw'; el.style.top=y+'vh'; requestAnimationFrame(step);
+            } step();
+        }
 
-        window.onload = () => {
-            initBubbles();
-            updateTimerDisplay();
-            setInterval(updateClock, 1000);
-            updateClock();
-            focusWindow('win-pomodoro');
-            
-            // Iniciar com secções abertas
-            renderTasks();
-        };
+        window.onload = () => { initBubbles(); setInterval(updateClock, 1000); updateClock(); showWin('win-pomodoro'); renderTasks(); renderHabits(); };
     </script>
 </body>
 </html>
